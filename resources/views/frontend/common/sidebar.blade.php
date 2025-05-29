@@ -109,16 +109,16 @@
                 class="navbar-brand"
                 height="20"
               /> -->
-              <h1 style="color:white">Logo</h1>
+              <h1 style="color:white">HRMS</h1>
             </a>
-            <div class="nav-toggle">
+            {{-- <div class="nav-toggle">
               <button class="btn btn-toggle toggle-sidebar">
                 <i class="gg-menu-right"></i>
               </button>
               <button class="btn btn-toggle sidenav-toggler">
                 <i class="gg-menu-left"></i>
               </button>
-            </div>
+            </div> --}}
             <button class="topbar-toggler more">
               <i class="gg-more-vertical-alt"></i>
             </button>

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use Session;
+use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
@@ -27,7 +27,7 @@ class AuthController extends Controller
             'password' => 'required|min:6',
            ]);
            $createUser = $this->create($validated);
-           return redirect('login')->with('success','User register successfully');
+           return redirect('admin')->with('success','User register successfully');
         // dd($req->all());
     }
     public function postLogin(Request $req)
@@ -40,7 +40,7 @@ class AuthController extends Controller
         if(Auth::attempt($checkLogin)){
             return redirect('home');
         }
-        return redirect('login')->with('error','Your login credentials are incorrect');
+        return redirect('admin')->with('error','Your login credentials are incorrect');
         //    dd($req->all());
     }
     public function create(array $data)
@@ -51,11 +51,11 @@ class AuthController extends Controller
             'password' => $data['password']
         ]);
     }
-    public function logout()
+    public function logout( Request $req)
     {
         Session::flush();
         Auth::logout();
-        return redirect('login');
+        return redirect('admin');
     }
 }
 

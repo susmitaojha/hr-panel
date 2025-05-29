@@ -25,8 +25,8 @@ class ProjectController extends Controller
     public function appEditProject(Request $request, $id)
     {
         $data['project'] = Project::find($id);
-        $data['mangerdata'] = Employee::where('role', '1')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
-        $data['teamLeaddata'] = Employee::where('role', '2')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
+        $data['mangerdata'] = Employee::where('state', '1')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
+        $data['teamLeaddata'] = Employee::where('state', '2')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
         return view('frontend.addProject', $data);
     }
     public function addProject(Request $request)

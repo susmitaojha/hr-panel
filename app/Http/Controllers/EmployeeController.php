@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Employee;
-use App\Models\Project;
-use App\Models\Manager;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeSalary;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class EmployeeController extends Controller
 {
@@ -25,12 +24,48 @@ class EmployeeController extends Controller
             return view('frontend.home', ['data' => $data]);
         }
     }
+    public function employeeViewdetails(Request $request, $id = "")
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'You need to be logged in to access this page.');
+        } else {
+            $auth_user_id = Auth::user()->id;
+            $data['employeeData'] = Employee::with('manager', 'teamLeadEmployees')->where('id', $id)->first();
+            $data['employeeImage'] = EmployeeDocument::where('emp_id', $id)->where('is_deleted', 0)->get();
+            $data['employeeSalary'] = EmployeeSalary::where('emp_id', $id)->where('is_deleted', 0)->first();
+            return view('frontend.employee_details', $data);
+        }
+    }
+    public function salaryStracture(Request $request, $id = "")
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'You need to be logged in to access this page.');
+        } else {
+            $auth_user_id = Auth::user()->id;
+            $data['employeeData'] = Employee::with('manager', 'teamLeadEmployees')->where('id', $id)->first();
+            $data['employeeImage'] = EmployeeDocument::where('emp_id', $id)->where('is_deleted', 0)->get();
+            $data['employeeSalary'] = EmployeeSalary::where('emp_id', $id)->where('is_deleted', 0)->first();
+            return view('frontend.salary_stracture', $data);
+        }
+    }
+    public function paySlip(Request $request, $id = "")
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'You need to be logged in to access this page.');
+        } else {
+            $auth_user_id = Auth::user()->id;
+            $data['employeeData'] = Employee::with('manager', 'teamLeadEmployees')->where('id', $id)->first();
+            $data['employeeImage'] = EmployeeDocument::where('emp_id', $id)->where('is_deleted', 0)->get();
+            $data['employeeSalary'] = EmployeeSalary::where('emp_id', $id)->where('is_deleted', 0)->first();
+            return view('frontend.emp_pay_slip', $data);
+        }
+    }
     public function viewEmployee()
     {
         if (!Auth::check()) {
             return redirect('/login')->with('error', 'You need to be logged in to access this page.');
         } else {
-            $data = Employee::where('is_deleted', 0)->orderBy('id', 'desc')->get();
+            $data = Employee::where('status', '0')->where('is_deleted', 0)->orderBy('created_at', 'desc')->get();
             return view('frontend.allEmployee', ['data' => $data]);
         }
     }
@@ -40,7 +75,8 @@ class EmployeeController extends Controller
             return redirect('/login')->with('error', 'You need to be logged in to access this page.');
         } else {
             $data['auth_user_id'] = Auth::user()->id;
-            $data['mangerdata'] = Employee::where('role', '1')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
+            $data['mangerdata'] = Employee::where('role', '1')->where('status', '0')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
+            $data['teamleaddata'] = Employee::where('role', '2')->where('status', '0')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
             $data['editEmployee'] = Employee::find($id);
             $data['employeeImage'] = EmployeeDocument::where('emp_id', $id)->where('is_deleted', 0)->get();
             $data['employeeSalary'] = EmployeeSalary::where('emp_id', $id)->where('is_deleted', 0)->first();
@@ -70,14 +106,15 @@ class EmployeeController extends Controller
                     'email'             => ['required', 'email', 'max:255', Rule::unique('employees', 'email')],
                     'department'        => ['required', 'string', 'max:255'],
                     'gender'            => ['required', Rule::in(['Male', 'Female'])],
-                    'role'              => ['required', 'integer'],
-                ]);
+                    'dob'               => ['required', 'date'],
+                    'joining_date'      => ['required', 'date'],
 
+                ]);
                 $prefix = 'DPW';
                 //Get latest employee code
                 $latest = Employee::where('emp_code', 'like', $prefix . '%')
-                                ->orderBy('emp_code', 'desc')
-                                ->first();
+                    ->orderBy('emp_code', 'desc')
+                    ->first();
                 if ($latest) {
                     $lastNumber = (int) substr($latest->emp_code, strlen($prefix));
                     $newNumber = $lastNumber + 1;
@@ -85,14 +122,23 @@ class EmployeeController extends Controller
                     $newNumber = 1;
                 }
                 $empCode = $prefix . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
-
                 //Photo upload
                 if ($request->hasFile('emp_photo')) {
-                    if ($request->file('emp_photo')->isValid()) {
-                        $filename = time() . '.' . $request->file('emp_photo')->getClientOriginalExtension();
-                        $path = $request->file('emp_photo')->storeAs('public/emp_photos', $filename);
-                        $data['emp_photo'] = $path;
-                    }
+                    $image = $request->file('emp_photo');
+                    $empimageName = time() . '.' . $image->getClientOriginalExtension();
+                    $image->move(public_path('assets/employee_photos'), $empimageName);
+                    $imagePath = $empimageName;
+                } else {
+                    $imagePath = Null;
+                }
+                //cv upload
+                if ($request->hasFile('emp_cv')) {
+                    $image = $request->file('emp_cv');
+                    $empCVName = time() . '.' . $image->getClientOriginalExtension();
+                    $image->move(public_path('assets/employee_cv'), $empCVName);
+                    $cvimagePath = $empCVName;
+                } else {
+                    $cvimagePath = Null;
                 }
                 //Create Employee
                 $employee = Employee::create([
@@ -101,14 +147,21 @@ class EmployeeController extends Controller
                     'mname'         => $request->mname,
                     'lname'         => $request->lname,
                     'email'         => $request->email,
+                    'dob'           => Carbon::parse($request->dob),
+                    'joining_date'  => Carbon::parse($request->joining_date),
                     'department'    => $request->department,
-                    'gender'        => $request->gender,
                     'role'          => $request->role,
+                    'gender'        => $request->gender,
                     'managerid'     => $request->managerid,
                     'team_lead_id'  => $request->teamLeadid,
-                    'contact_no'    => $request->contact_no,
-                    'skills'        => $request->skills,
-                    'emp_photo'     => $request->file('emp_photo'),
+                    'address_line1' => $request->address_line1,
+                    'address_line2' => $request->address_line2,
+                    'city'          => $request->city,
+                    'district'      => $request->district,
+                    'state'         => $request->state,
+                    'pincode'       => $request->pincode,
+                    'emp_cv'        => $cvimagePath,
+                    'emp_photo'     => $imagePath,
                 ]);
                 if (! $employee) {
                     return redirect()->back()
@@ -129,24 +182,28 @@ class EmployeeController extends Controller
                         'esi_employer'       => $request->esi_employer ?? 0,
                         'bonus'              => $request->bonus ?? 0,
                         'other_benefits'     => $request->other_benefits ?? 0,
-                        'net_salary'         => $request->input('resultField', 0),
-                        'increment'          => $request->input('increment', 0),
-                        'incremented_salary' => $request->input('incrementSalary', 0),
+                        'net_salary'         => $request->resultField ?? 0,
+                        'increment'          => $request->increment ?? 0,
+                        'incremented_salary' => $request->incrementSalary ?? 0,
                     ]);
                 }
-                //Optional: documents upload
                 if ($request->hasFile('doc_file')) {
                     foreach ($request->file('doc_file') as $file) {
-                        $path = $file->store('public/employee_documents');
-                        $fileName = basename($path);
+                        $destinationPath = public_path('assets/employee_documents');
+                        // Create the folder if it doesn't exist
+                        if (!file_exists($destinationPath)) {
+                            mkdir($destinationPath, 0755, true);
+                        }
+                        $fileName = $employee->id . '_' . time() . '_' . $file->getClientOriginalName();
+                        $file->move($destinationPath, $fileName);
                         EmployeeDocument::create([
-                            'emp_id'        => $employee->id,
-                            'emp_document'  => $fileName,
+                            'emp_id'       => $employee->id,
+                            'emp_document' => $fileName,
                         ]);
                     }
                 }
                 // Redirect back with success
-                return redirect()->back()->with('success', 'Employee added successfully!');
+                return redirect('all-employee')->with('success', 'Employee added successfully!');
             } else {
                 $emp_id = $request->emp_id;
                 // Update Employee
@@ -156,28 +213,56 @@ class EmployeeController extends Controller
                     'mname' => $request->mname,
                     'lname' => $request->lname,
                     'email' => $request->email,
+                    'dob'           => Carbon::parse($request->dob),
+                    'joining_date'  => Carbon::parse($request->joining_date),
                     'department' => $request->department,
+                    'role'          => $request->role,
                     'gender' => $request->gender,
-                    'role' => $request->role,
                     'managerid' => $request->managerid,
                     'team_lead_id'   => $request->teamLeadid,
                     'contact_no' => $request->contact_no,
                     'skills' => $request->skills,
+                    'address_line1'      => $request->address_line1,
+                    'address_line2'      => $request->address_line2,
+                    'city'               => $request->city,
+                    'district'           => $request->district,
+                    'state'              => $request->state,
+                    'pincode'       => $request->pincode,
                 ]);
 
                 //Handle photo upload
                 if ($request->hasFile('emp_photo')) {
-                    // Delete old photo if exists
-                    if ($employee->emp_photo && Storage::disk('public')->exists('employee_photos/' . $employee->emp_photo)) {
-                        Storage::disk('public')->delete('employee_photos/' . $employee->emp_photo);
+                    // Delete the old emp_photo if it exists
+                    if (!empty($employee->emp_photo)) {
+                        $oldemp_photoPath = public_path('assets/employee_photos/' . $employee->emp_photo);
+                        if (file_exists($oldemp_photoPath)) {
+                            unlink($oldemp_photoPath);
+                        }
                     }
-                    //Save new photo
-                    $photo = $request->file('emp_photo');
-                    $photoName = time() . '.' . $photo->getClientOriginalExtension();
-                    $photo->storeAs('employee_photos', $photoName, 'public');
-                    //Update employee with new photo name
+                    // Upload the new CV
+                    $emp_profilephoto = $request->file('emp_photo');
+                    $profilephotoName = time() . '.' . $emp_profilephoto->getClientOriginalExtension();
+                    $emp_profilephoto->move(public_path('assets/employee_photos'), $profilephotoName);
+                    // Update the database
                     $employee->update([
-                        'emp_photo' => $photoName,
+                        'emp_photo' => $profilephotoName,
+                    ]);
+                }
+                //Employee CV
+                if ($request->hasFile('emp_cv')) {
+                    // Delete the old CV if it exists
+                    if (!empty($employee->emp_cv)) {
+                        $oldCvPath = public_path('assets/employee_cv/' . $employee->emp_cv);
+                        if (file_exists($oldCvPath)) {
+                            unlink($oldCvPath);
+                        }
+                    }
+                    $cv = $request->file('emp_cv');
+                    $cvName = time() . '.' . $cv->getClientOriginalExtension();
+                    $cv->move(public_path('assets/employee_cv'), $cvName);
+                    // Update the database
+                    $employee->update([
+                        'emp_cv' => $cvName,
                     ]);
                 }
                 // Update Employee Salary
@@ -205,11 +290,16 @@ class EmployeeController extends Controller
                 // Handle documents (optional)
                 if ($request->hasFile('doc_file')) {
                     foreach ($request->file('doc_file') as $file) {
-                        $path = $file->store('public/employee_documents');
-                        $fileName = basename($path);
+                        $destinationPath = public_path('assets/employee_documents');
+                        // Create the folder if it doesn't exist
+                        if (!file_exists($destinationPath)) {
+                            mkdir($destinationPath, 0755, true);
+                        }
+                        $fileName = $emp_id . '_' . time() . '_' . $file->getClientOriginalName();
+                        $file->move($destinationPath, $fileName);
                         EmployeeDocument::create([
-                            'emp_id'        => $employee->id,
-                            'emp_document'  => $fileName,
+                            'emp_id'       => $emp_id,
+                            'emp_document' => $fileName,
                         ]);
                     }
                 }
@@ -220,56 +310,16 @@ class EmployeeController extends Controller
     public function getaddTeamLeads($managerId)
     {
         $teamLeads = Employee::where('managerid', $managerId)
-            ->where('role', 2)
+            ->where('status', '0')
+            ->where('is_deleted', 0)
             ->get();
         return response()->json($teamLeads);
     }
 
     public function getaddSeniorEmployees($teamLeadId)
     {
-        $seniorEmployees = Employee::where('team_lead_id', $teamLeadId)->where('role', 3)->get();
+        $seniorEmployees = Employee::where('team_lead_id', $teamLeadId)->where('state', 3)->get();
         return response()->json($seniorEmployees);
-    }
-
-    public function displayjunior()
-    {
-        $data = Employee::with('manager')->where('role', 'junior')->get();
-        return view('frontend.junioremployee', ['data' => $data]);
-    }
-    public function displaysenior()
-    {
-        $data = Employee::with('manager')->where('role', 'senior')->get();
-        return view('frontend.senioremployee', ['data' => $data]);
-    }
-    public function displayteamlead()
-    {
-        $data = Employee::with('manager')->where('role', 'teamlead')->get();
-        return view('frontend.teamlead', ['data' => $data]);
-    }
-    public function displaymanager()
-    {
-        $data = Employee::where('role', 'manger')->get();
-        return view('frontend.manager', ['data' => $data]);
-    }
-    public function employeeForm()
-    {
-        $data = Manager::all();
-        return view('frontend.addEmployeeform', compact('data'));
-    }
-    public function teamleadForm()
-    {
-        $data = Manager::all();
-        return view('frontend.addteamleadform', compact('data'));
-    }
-    public function managerForm()
-    {
-        return view('frontend.addmanagerform');
-    }
-
-    public function edit($id)
-    {
-        $employee = Employee::findOrFail($id);
-        return view('frontend.editemployeeform', compact('employee'));
     }
 
     public function deleteEmployee($id)
@@ -286,14 +336,5 @@ class EmployeeController extends Controller
             }
             return redirect()->back()->with('error', 'Employee not found.');
         }
-    }
-    public function attendenceindex()
-    {
-        return response()->json(Employee::select('id', 'name')->get());
-    }
-
-    public function attendenceshow($id)
-    {
-        return response()->json(Employee::findOrFail($id));
     }
 }

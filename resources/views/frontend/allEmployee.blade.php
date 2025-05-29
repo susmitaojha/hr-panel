@@ -2,7 +2,7 @@
      @include('frontend.common.sidebar')
      <!-- End Sidebar -->
      @include('frontend.common.navbar')
-
+@php use Carbon\Carbon; @endphp
      <div class="container">
          <div class="page-inner">
              <div class="page-header">
@@ -51,8 +51,9 @@
                                              <th>Employee Name</th>
                                              <th>Email</th>
                                              <th>Gender</th>
-                                             <th>Role</th>
+                                             <th>state</th>
                                              <th>Manager</th>
+                                             <th>Joining Date</th>
                                              <th>Actions</th>
                                          </tr>
                                      </thead>
@@ -65,18 +66,18 @@
                                                      <td>{{ $item->email }}</td>
                                                      <td>{{ $item->gender }}</td>
                                                      <td>
-                                                         @if ($item->role == '1')
+                                                         @if ($item->state == '1')
                                                              Manager
-                                                         @elseif ($item->role == '2')
+                                                         @elseif ($item->state == '2')
                                                              Team Lead
-                                                         @elseif ($item->role == '3')
+                                                         @elseif ($item->state == '3')
                                                              Senior Employee
-                                                         @elseif ($item->role == '4')
+                                                         @elseif ($item->state == '4')
                                                              Junior Employee
-                                                         @elseif ($item->role == '5')
+                                                         @elseif ($item->state == '5')
                                                              HR
                                                          @else
-                                                             No Role Assign
+                                                             No state Assign
                                                          @endif
 
                                                      </td>
@@ -85,8 +86,14 @@
                                                              ? $item->manager->fname . ' ' . $item->manager->mname . ' ' . $item->manager->lname
                                                              : 'No Manager Assigned' }}
                                                      </td>
+                                                     <td>{{ Carbon::parse($item->joining_date)->format('d-m-Y') }}</td>
                                                      <td>
                                                          <div class="d-flex align-items-center gap-2">
+                                                            <a href="{{ url('employee-details/' . $item->id) }}"
+                                                                 class="btn btn-link p-0"
+                                                                 data-original-title="Edit Task">
+                                                                 <i class="fa fa-eye"></i>
+                                                             </a>
                                                              <a href="{{ url('add-edit-employee/' . $item->id) }}"
                                                                  class="btn btn-link p-0"
                                                                  data-original-title="Edit Task">
@@ -121,8 +128,10 @@
      <script>
          $(document).ready(function() {
              $('#employee-datatables').DataTable({
+
                  pageLength: 25, // Show 25 entries by default
                  dom: 'lBfrtip',
+                 order: ['6', 'desc'],
                  buttons: [{
                          extend: 'excelHtml5',
                          text: 'Export to Excel',

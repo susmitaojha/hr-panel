@@ -12,13 +12,13 @@ class AttendanceController extends Controller
     {
         $data = Employee::all();
         return view('frontend.attendenceform',compact('data'));
-    } 
+    }
     public function attendenceList()
     {
         $data = Attendance::with('employee')->get();
-        $holiday = Holiday::with('employee')->get();
+        //$holiday = Holiday::with('employee')->get();
         return view('frontend.attendencetable',compact('data','holiday'));
-    } 
+    }
     public function show($id)
     {
         $employee = Employee::findOrFail($id);

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('gender');
             $table->string('designation');
-            $table->string('role');
+            $table->string('state');
             $table->text('skills');
             $table->string('fixedsalary');
             $table->timestamps();
