@@ -45,10 +45,10 @@
                                         title="employee salary stracture"><button type="button" data-mdb-button-init data-mdb-ripple-init
                                         class="btn btn-primary">Pay
                                         slip</button></a>
-                                    <a href="{{ url('employee-salary-stracture/' . $employeeData->id) }}" target="_blank"
+                                    {{-- <a href="{{ url('employee-salary-stracture/' . $employeeData->id) }}" target="_blank"
                                         title="employee salary stracture"><button type="button" data-mdb-button-init
                                             data-mdb-ripple-init class="btn btn-outline-primary ms-1">Salary
-                                            Structure</button></a>
+                                            Structure</button></a> --}}
                                 </div>
                             </div>
                         </div>
@@ -149,7 +149,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <p class="text-muted mb-0">
-                                            {{ $employeeData->manager?->fullname ?? 'No Manager Assigned' }}
+                                            {{ $employeeData->teamLeadEmployee?->fullname ?? 'No Team lead Assigned' }}
                                         </p>
                                     </div>
                                 </div>

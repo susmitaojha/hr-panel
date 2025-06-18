@@ -108,14 +108,15 @@
                                     <div class="form-group">
                                         <label>Date of birth</label>
                                         <input type="date" name="dob" class="form-control"
-                                            value="{{ $editEmployee->dob ? Carbon::parse($editEmployee->dob)->format('Y-m-d') : '' }}" placeholder="Enter Date of birth" />
+                                            value="{{ isset($editEmployee) && $editEmployee->dob ? Carbon::parse($editEmployee->dob)->format('Y-m-d') : '' }}"
+                                            placeholder="Enter Date of birth" />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Date Joined</label>
                                         <input type="date" name="joining_date" class="form-control"
-                                            value="{{ $editEmployee->joining_date ? Carbon::parse($editEmployee->joining_date)->format('Y-m-d') : '' }}"
+                                            value="{{ isset($editEmployee) && $editEmployee->joining_date ? Carbon::parse($editEmployee->joining_date)->format('Y-m-d') : '' }}"
                                             placeholder="Enter Date Joined" />
                                     </div>
                                 </div>
@@ -150,11 +151,6 @@
                                         </select>
                                     </div>
                                 </div>
-
-                            </div>
-
-                            <!-- Row 3 -->
-                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Manager Name</label>
@@ -169,6 +165,11 @@
                                         </select>
                                     </div>
                                 </div>
+
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Team Lead</label>
@@ -187,7 +188,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Mobile</label>
-                                        <input type="text" class="form-control" name="contact_no"
+                                        <input type="number" class="form-control" name="contact_no"
                                             value="{{ !empty($editEmployee->contact_no) ? $editEmployee->contact_no : '' }}"
                                             placeholder="Enter Mobile No." />
                                     </div>
@@ -195,34 +196,48 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Passport Size Photo</label>
-                                        <input type="file" name="emp_photo" class="form-control">
+                                        <input type="file" name="emp_photo" class="form-control" accept=".jpg, .jpeg, .png">
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Row 4 -->
-                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Upload CV</label>
-                                        <input type="file" name="emp_cv" class="form-control">
+                                        <input type="file" name="emp_cv" class="form-control" accept="application/pdf">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Gender</label>
-                                    <div class="d-flex gap-3 mt-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="gender"
-                                                value="Male" id="genderMale"
-                                                {{ !empty($editEmployee->gender) && $editEmployee->gender == 'Male' ? 'checked' : '' }} />
-                                            <label class="form-check-label" for="genderMale">Male</label>
+                                    <div class="form-group">
+                                        <label>Gender</label>
+                                        <div class="d-flex gap-3 mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="gender"
+                                                    value="Male" id="genderMale"
+                                                    {{ !empty($editEmployee->gender) && $editEmployee->gender == 'Male' ? 'checked' : '' }} />
+                                                <label class="form-check-label" for="genderMale">Male</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="gender"
+                                                    value="Female" id="genderFemale"
+                                                    {{ !empty($editEmployee->gender) && $editEmployee->gender == 'Female' ? 'checked' : '' }} />
+                                                <label class="form-check-label" for="genderFemale">Female</label>
+                                            </div>
                                         </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="gender"
-                                                value="Female" id="genderFemale"
-                                                {{ !empty($editEmployee->gender) && $editEmployee->gender == 'Female' ? 'checked' : '' }} />
-                                            <label class="form-check-label" for="genderFemale">Female</label>
-                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <select class="form-control" name="status">
+                                            <option value="0"
+                                                {{ !empty($editEmployee->status) && $editEmployee->status == '0' ? 'selected' : '' }}>
+                                                Active</option>
+                                            <option value="1"
+                                                {{ !empty($editEmployee->status) && $editEmployee->status == '1' ? 'selected' : '' }}>
+                                                Closed</option>
+                                            <option value="2"
+                                                {{ !empty($editEmployee->status) && $editEmployee->status == '2' ? 'selected' : '' }}>
+                                                Terminated</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -233,7 +248,7 @@
                                         <label>Upload Documents (pdf only) Maximum 5 documents allowed </label>
                                         <div id="fileInputsContainer">
                                             <div class="file-input-group d-flex align-items-center mb-2">
-                                                <input type="file" name="doc_file[]" class="form-control me-2">
+                                                <input type="file" name="doc_file[]" class="form-control me-2" accept="application/pdf">
                                                 <button type="button" class="btn btn-danger btn-sm"
                                                     onclick="removeFileInput(this)">−</button>
                                             </div>
@@ -256,24 +271,16 @@
                                                     @foreach ($employeeImage as $empImagerow)
                                                         @php
                                                             $file = $empImagerow->emp_document;
-                                                            $filePath = asset($file);
-                                                            $extension = Str::lower(
-                                                                pathinfo($file, PATHINFO_EXTENSION),
-                                                            );
+                                                            $filePath = asset('assets/employee_documents/' . $file);
                                                         @endphp
                                                         <div class="image-container single_image"
                                                             data-id="{{ $empImagerow->id }}">
-                                                            @if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']))
-                                                                <img src="{{ $filePath }}" class="img-thumbnail"
-                                                                    style="width: 120px; height: 120px;">
-                                                            @else
-                                                                <a href="{{ $filePath }}" target="_blank">
-                                                                    <img src="{{ asset('assets/img/pdf-icon.png') }}"
-                                                                        class="img-thumbnail"
-                                                                        style="width: 50px; height: 50px;"
-                                                                        title="View PDF">
-                                                                </a>
-                                                            @endif
+                                                            <a href="{{ $filePath }}" target="_blank">
+                                                                <img src="{{ asset('assets/img/pdf-icon.png') }}"
+                                                                    class="img-thumbnail"
+                                                                    style="width: 50px; height: 50px;"
+                                                                    title="View PDF">
+                                                            </a>
                                                             <span class="remove-icon"
                                                                 onclick="removeEmpDocuments({{ $empImagerow->id }})">&times;</span>
                                                         </div>
@@ -440,7 +447,7 @@
                                     <input type="text" class="form-control" id="pincode" name = "pincode"
                                         maxlength="6"
                                         value="{{ !empty($editEmployee->pincode) ? $editEmployee->pincode : '' }}"
-                                        pattern="\d{6}" placeholder="e.g. 560001" required>
+                                        pattern="\d{6}" placeholder="e.g. 560001">
                                 </div>
                             </div>
                         </div>
@@ -483,14 +490,14 @@
                                             name = "trans_all" placeholder="0" />
                                     </div>
                                 </div>
-                                <div class="col-md-6 col-lg-4">
+                                {{-- <div class="col-md-6 col-lg-4">
                                     <div class="form-group">
                                         <label>Others</label>
                                         <input type="number" class="form-control salary" id="sal-5"
                                             value="{{ !empty($employeeSalary->others) ? $employeeSalary->others : '' }}"
                                             name = "others" placeholder="0" />
                                     </div>
-                                </div>
+                                </div> --}}
                                 <div class="col-md-6 col-lg-4">
                                     <div class="form-group">
                                         <label>Medical Allowance</label>
@@ -499,8 +506,6 @@
                                             name = "medical_allowance" placeholder="0" />
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
                                 <div class="col-md-6 col-lg-4">
                                     <div class="form-group">
                                         <label>PF Employer</label>
@@ -508,7 +513,10 @@
                                             value="{{ !empty($employeeSalary->pf_employer) ? $employeeSalary->pf_employer : '' }}"
                                             name = "pf_employer" placeholder="0" />
                                     </div>
-
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 col-lg-4">
                                     <div class="form-group">
                                         <label>ESI Employer</label>
                                         <input type="number" class="form-control salary" id="sal-9"
@@ -523,18 +531,19 @@
                                             value="{{ !empty($employeeSalary->other_benefits) ? $employeeSalary->other_benefits : '' }}"
                                             name="other_benefits" placeholder="0" />
                                     </div>
-                                    <div class="form-group">
+                                    {{-- <div class="form-group">
                                         <label>Bonus</label>
                                         <input type="number" class="form-control salary" id="sal-8"
                                             value="{{ !empty($employeeSalary->bonus) ? $employeeSalary->bonus : '' }}"
                                             name = "bonus" placeholder="0" />
-                                    </div>
+                                    </div> --}}
+
+                                </div>
+                                <div class="col-md-6 col-lg-4 my-4">
                                     <div class="form-group">
                                         <label for="variablePay"></label>
-                                        <button type="button" class="btn btn-success"
-                                            id="calculateBtn">Calculate</button>
-                                        {{-- <button type="button" class="btn btn-danger"
-                                                id="downloadBtn">Download</button> --}}
+                                        <button type="button" class="btn btn-success" id="calculateBtn">Calculate
+                                            Salary</button>
                                     </div>
                                 </div>
                             </div>
@@ -600,9 +609,6 @@
             checkRequired('email', 'Email Address');
             checkRequired('department', 'Department');
             checkRequired('state', 'Designation');
-            //checkRequired('managerid', 'Manager');
-            //checkRequired('teamLeadid', 'Team Lead');
-            //checkRequired('seniorEmployeeid', 'Senior Employee');
             checkRequired('contact_no', 'Mobile');
 
             // Optional: validate email format
@@ -664,7 +670,7 @@
             newInputGroup.className = 'file-input-group d-flex align-items-center mb-2';
 
             newInputGroup.innerHTML = `
-            <input type="file" name="doc_file[]" class="form-control me-2">
+            <input type="file" name="doc_file[]" class="form-control me-2" accept="application/pdf">
             <button type="button" class="btn btn-danger btn-sm" onclick="removeFileInput(this)">−</button>
         `;
 

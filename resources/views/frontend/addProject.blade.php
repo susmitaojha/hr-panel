@@ -97,7 +97,7 @@
                                     <label for="team_lead_id" class="form-label">Team Lead ID</label>
                                     <select class="form-control" name="team_lead_id" id = "team_lead_id">
                                         <option value="">Select Team Lead</option>
-                                        @foreach ($teamLeaddata as $teamLeaditem)
+                                        @foreach ($teamleaddata as $teamLeaditem)
                                             <option value="{{ $teamLeaditem->id }}"
                                                 {{ !empty($project->team_lead_id) && $project->team_lead_id == $teamLeaditem->id ? 'selected' : '' }}>
                                                 {{ $teamLeaditem->fname }} {{ $teamLeaditem->mname }} {{ $teamLeaditem->lname }}
@@ -120,9 +120,10 @@
                                     <label for="status" class="form-label">Status</label>
                                     <select class="form-control form-select" id="status" name="status">
                                         <option value="" hidden>Choice Option</option>
-                                        <option value="Planned" {{ !empty($project->status) && $project->status == 'Planned' ? 'selected' : '' }}>Planned</option>
-                                        <option value="Ongoing" {{ !empty($project->status) && $project->status == 'Ongoing' ? 'selected' : '' }}>Ongoing</option>
-                                        <option value="Completed" {{ !empty($project->status) && $project->status == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                        <option value="running" {{ !empty($project->status) && $project->status == 'running' ? 'selected' : '' }}>Running</option>
+                                        <option value="pending" {{ !empty($project->status) && $project->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="completed" {{ !empty($project->status) && $project->status == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                        <option value="closed" {{ !empty($project->status) && $project->status == 'closed' ? 'selected' : '' }}>Closed</option>
                                     </select>
                                 </div>
                             </div>
@@ -158,12 +159,12 @@
 
         // Validate required text/number fields
         checkRequired('pname', 'Project Name');
-        checkRequired('hours', 'Estimated Hours');
+        //checkRequired('hours', 'Estimated Hours');
         checkRequired('priority', 'Priority');
         checkRequired('managerid', 'Manager');
         checkRequired('team_lead_id', 'Team Lead');
         checkRequired('start_date', 'Start Date');
-        checkRequired('end_date', 'End Date');
+        //checkRequired('end_date', 'End Date');
         checkRequired('status', 'Status');
 
         // Validate that start_date is before end_date

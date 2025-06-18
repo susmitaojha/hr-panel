@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\AttendanceController;
 
+route::get('/',[AuthController::class,'login']);
 route::get('/admin',[AuthController::class,'login']);
 route::get('/registration',[AuthController::class,'registration']);
 route::post('/post-registration',[AuthController::class,'postRegistration']);
@@ -13,6 +14,8 @@ route::get('/logout',[AuthController::class,'logout']);
 
 route::get('/home',[EmployeeController::class,'index']);
 route::get('/all-employee',[EmployeeController::class,'viewEmployee']);
+route::get('/all-terminated-employee',[EmployeeController::class,'viewTerminatedEmployee']);
+route::get('/all-closed-employee',[EmployeeController::class,'viewClosedEmployee']);
 route::get('/employee-details/{id}',[EmployeeController::class,'employeeViewdetails']);
 route::get('/employee-salary-stracture/{id}',[EmployeeController::class,'salaryStracture']);
 route::get('/employee-pay-slip/{id}',[EmployeeController::class,'paySlip']);
@@ -22,6 +25,10 @@ Route::delete('/employee-delete-documents/{id}', [EmployeeController::class, 'em
 Route::get('/delete-employee/{id}', [EmployeeController::class, 'deleteEmployee']);
 Route::get('/get-team-leads/{managerId}', [EmployeeController::class, 'getaddTeamLeads']);
 Route::get('/get-senior-employees/{teamLeadId}', [EmployeeController::class, 'getaddSeniorEmployees']);
+Route::get('/employee-salary-stracture/pdf/{id}', [EmployeeController::class, 'downloadSalaryStracturePdf']);
+Route::get('employee-pay-slip-pdf/{id}', [EmployeeController::class, 'downloadPayslip']);
+route::post('/bonus-store/',[EmployeeController::class,'postEmployeeBonusStore']);
+Route::get('/fetch-employee-bonus', [EmployeeController::class, 'fetchBonus']);
 
 route::get('/junior-employee',[EmployeeController::class,'displayjunior']);
 route::get('/senior-employee',[EmployeeController::class,'displaysenior']);

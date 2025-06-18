@@ -26,7 +26,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')}}"></script>
     <link rel="stylesheet" href="assets/bundles/izitoast/css/iziToast.min.css">
 
-
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -156,30 +155,20 @@
                 <div class="collapse" id="base">
                   <ul class="nav nav-collapse">
                     <li>
-                        <a href="/all-employee">
+                        <a href="{{url('/all-employee')}}">
                             <span class="sub-item">All Employee</span>
                         </a>
                     </li>
-                    {{-- <li>
-                      <a href="/manager">
-                        <span class="sub-item">Manager</span>
-                      </a>
+                    <li>
+                        <a href="{{url('/all-terminated-employee')}}">
+                            <span class="sub-item">All Terminated Employee</span>
+                        </a>
                     </li>
                     <li>
-                      <a href="/team-lead">
-                        <span class="sub-item">Team Lead</span>
-                      </a>
+                        <a href="{{url('/all-closed-employee')}}">
+                            <span class="sub-item">All Closed Employee</span>
+                        </a>
                     </li>
-                    <li>
-                      <a href="/senior-employee">
-                        <span class="sub-item">Senior Employee</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/junior-employee">
-                        <span class="sub-item">Junior Employee</span>
-                      </a>
-                    </li> --}}
                   </ul>
                 </div>
               </li>
@@ -191,7 +180,7 @@
                 <div class="collapse" id="projectbase">
                   <ul class="nav nav-collapse">
                     <li>
-                        <a href="/view-project">
+                        <a href="{{ url('/view-project')}}">
                             <span class="sub-item">All Project</span>
                         </a>
                     </li>

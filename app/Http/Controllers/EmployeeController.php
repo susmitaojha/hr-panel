@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Employee;
+use App\Models\Project;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeSalary;
+use App\Models\EmployeeMonthlyBonus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmployeeController extends Controller
 {
@@ -20,8 +23,12 @@ class EmployeeController extends Controller
             return redirect('/login')->with('error', 'You need to be logged in to access this page.');
         } else {
             $auth_user_id = Auth::user()->id;
-            $data = Employee::with('manager')->orderBy('created_at', 'desc')->get();
-            return view('frontend.home', ['data' => $data]);
+            $data['empData'] = Employee::with('manager')->orderBy('created_at', 'desc')->get();
+            $data['totalEmployees']  = Employee::count();
+            $data['activeEmployees']  = Employee::where('status', '0')->count();
+            $data['twoyearProjectCount'] = Project::where('created_at', '>=', Carbon::now()->subYears(2))->count();
+            $data['activeProject']  = Project::where('status', '!=', 'closed')->count();
+            return view('frontend.home', $data);
         }
     }
     public function employeeViewdetails(Request $request, $id = "")
@@ -54,6 +61,7 @@ class EmployeeController extends Controller
             return redirect('/login')->with('error', 'You need to be logged in to access this page.');
         } else {
             $auth_user_id = Auth::user()->id;
+            $data['emp_id'] = $id;
             $data['employeeData'] = Employee::with('manager', 'teamLeadEmployees')->where('id', $id)->first();
             $data['employeeImage'] = EmployeeDocument::where('emp_id', $id)->where('is_deleted', 0)->get();
             $data['employeeSalary'] = EmployeeSalary::where('emp_id', $id)->where('is_deleted', 0)->first();
@@ -67,6 +75,24 @@ class EmployeeController extends Controller
         } else {
             $data = Employee::where('status', '0')->where('is_deleted', 0)->orderBy('created_at', 'desc')->get();
             return view('frontend.allEmployee', ['data' => $data]);
+        }
+    }
+    public function viewTerminatedEmployee()
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'You need to be logged in to access this page.');
+        } else {
+            $data = Employee::where('status', '2')->where('is_deleted', 0)->orderBy('created_at', 'desc')->get();
+            return view('frontend.allTerminatedEmployee', ['data' => $data]);
+        }
+    }
+    public function viewClosedEmployee()
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'You need to be logged in to access this page.');
+        } else {
+            $data = Employee::where('status', '1')->where('is_deleted', 0)->orderBy('created_at', 'desc')->get();
+            return view('frontend.allClosedEmployee', ['data' => $data]);
         }
     }
     public function addEditEmployee(Request $request, $id = "")
@@ -87,7 +113,10 @@ class EmployeeController extends Controller
     {
         $empDocument = EmployeeDocument::find($id);
         if ($empDocument) {
-            Storage::disk('public')->delete('employee_documents/' . $empDocument->emp_document);
+            $filePath = public_path('assets/employee_documents/' . $empDocument->emp_document);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
             $empDocument->delete();
             return response()->json(['success' => true]);
         }
@@ -147,11 +176,13 @@ class EmployeeController extends Controller
                     'mname'         => $request->mname,
                     'lname'         => $request->lname,
                     'email'         => $request->email,
+                    'contact_no'         => $request->contact_no,
                     'dob'           => Carbon::parse($request->dob),
                     'joining_date'  => Carbon::parse($request->joining_date),
                     'department'    => $request->department,
                     'role'          => $request->role,
                     'gender'        => $request->gender,
+                    'status'        => $request->status,
                     'managerid'     => $request->managerid,
                     'team_lead_id'  => $request->teamLeadid,
                     'address_line1' => $request->address_line1,
@@ -176,15 +207,14 @@ class EmployeeController extends Controller
                         'hra'                => $request->hra ?? 0,
                         'conv_allowance'     => $request->conv_all ?? 0,
                         'trans_allowance'    => $request->trans_all ?? 0,
-                        'others'             => $request->others ?? 0,
                         'medical_allowance'  => $request->medical_allowance ?? 0,
                         'pf_employer'        => $request->pf_employer ?? 0,
                         'esi_employer'       => $request->esi_employer ?? 0,
-                        'bonus'              => $request->bonus ?? 0,
                         'other_benefits'     => $request->other_benefits ?? 0,
                         'net_salary'         => $request->resultField ?? 0,
                         'increment'          => $request->increment ?? 0,
                         'incremented_salary' => $request->incrementSalary ?? 0,
+                        'salary_nett' => $request->resultField ?? 0,
                     ]);
                 }
                 if ($request->hasFile('doc_file')) {
@@ -218,6 +248,7 @@ class EmployeeController extends Controller
                     'department' => $request->department,
                     'role'          => $request->role,
                     'gender' => $request->gender,
+                    'status'        => $request->status,
                     'managerid' => $request->managerid,
                     'team_lead_id'   => $request->teamLeadid,
                     'contact_no' => $request->contact_no,
@@ -275,11 +306,9 @@ class EmployeeController extends Controller
                             'hra' => $request->hra,
                             'conv_allowance' => $request->conv_all,
                             'trans_allowance' => $request->trans_all,
-                            'others' => $request->others,
                             'medical_allowance' => $request->medical_allowance,
                             'pf_employer' => $request->pf_employer,
                             'esi_employer' => $request->esi_employer,
-                            'bonus' => $request->bonus,
                             'other_benefits' => $request->other_benefits,
                             'salary_nett' => $request->resultField,
                             'increment_percent' => $request->increment,
@@ -309,7 +338,7 @@ class EmployeeController extends Controller
     }
     public function getaddTeamLeads($managerId)
     {
-        $teamLeads = Employee::where('managerid', $managerId)
+        $teamLeads = Employee::where('managerid', $managerId)->where('role', '2')
             ->where('status', '0')
             ->where('is_deleted', 0)
             ->get();
@@ -322,6 +351,23 @@ class EmployeeController extends Controller
         return response()->json($seniorEmployees);
     }
 
+    public function postEmployeeBonusStore(Request $request)
+    {
+        $request->validate([
+            'emp_id' => 'required|integer',
+            'month' => 'required|date_format:Y-m',
+            'bonus_amount' => 'required|numeric|min:0',
+            'bonus_frequency' => 'required|in:monthly,quarterly,halfyearly,yearly',
+        ]);
+        $empMonthlyBonus = EmployeeMonthlyBonus::create([
+            'emp_id' => $request->emp_id,
+            'bonus_month' => $request->month,
+            'bonus_amount' => $request->bonus_amount,
+            'bonus_reason' => $request->bonus_frequency,
+        ]);
+
+        return redirect()->back()->with('success', 'Bonus added successfully!');
+    }
     public function deleteEmployee($id)
     {
         if (!Auth::check()) {
@@ -336,5 +382,42 @@ class EmployeeController extends Controller
             }
             return redirect()->back()->with('error', 'Employee not found.');
         }
+    }
+    public function downloadSalaryStracturePdf($id)
+    {
+        $employeeData = Employee::findOrFail($id);
+        $employeeSalary = $employeeData->salary;
+
+        $pdf = Pdf::loadView('frontend.ctc_pdf', compact('employeeData', 'employeeSalary'));
+
+        return $pdf->download('employee_ctc_' . $employeeData->emp_code . '.pdf');
+    }
+    public function fetchBonus(Request $request)
+    {
+        $empId = $request->input('emp_id');
+        $month = $request->input('month');
+
+        $bonus = EmployeeMonthlyBonus::where('emp_id', $empId)
+            ->where('bonus_month', $month)
+            ->first();
+
+        $employeeData = Employee::find($empId);
+        $employeeSalary = EmployeeSalary::where('emp_id', $empId)->first();
+
+        return view('frontend.bonus_payslip', compact('employeeData', 'employeeSalary', 'bonus', 'month'));
+    }
+    public function downloadPayslip($id, Request $request)
+    {
+        $month = $request->query('month'); // e.g., "2025-05"
+
+        $bonus = EmployeeMonthlyBonus::where('emp_id', $id)
+            ->where('bonus_month', $month)
+            ->first();
+
+        $employeeData = Employee::find($id);
+        $employeeSalary = EmployeeSalary::where('emp_id', $id)->first();
+
+        $pdf = Pdf::loadView('frontend.bonus_payslip', compact('employeeData', 'employeeSalary', 'bonus', 'month'));
+        return $pdf->download("Payslip_{$employeeData->emp_code}_{$month}.pdf");
     }
 }

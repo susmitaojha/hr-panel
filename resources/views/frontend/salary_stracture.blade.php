@@ -30,17 +30,39 @@
             <h3 class="fw-bold mb-3">Employee Management</h3>
         </div>
         <section style="background-color: #eee;">
-            <div class="container my-5">
+            <div class="container">
                 <div class="mb-3">
                     <h5 class="text-center"><strong>CTC Breakup</strong></h5>
                 </div>
 
                 <div class="mb-4">
-                    <p><strong>NAME:</strong> <em>Susmita Ojha</em></p>
-                    <p><strong>GRADE:</strong> <em>E1</em></p>
+                    <p><strong>NAME:</strong>
+                        <span
+                            style="font-size: 16px;">{{ $employeeData->fname || $employeeData->mname || $employeeData->lname
+                                ? trim("{$employeeData->fname} {$employeeData->mname} {$employeeData->lname}")
+                                : 'N/A' }}</span>
+                    </p>
+                    <p><strong>Employee ID:</strong>
+                        <span
+                            style="font-size: 16px;">{{ !empty($employeeData->emp_code) ? $employeeData->emp_code : '' }}</span>
+                    </p>
                 </div>
 
                 <div class="table-responsive">
+                    @php
+                        $basic = $employeeSalary->basic ?? 0;
+                        $hra = $employeeSalary->hra ?? 0;
+                        $conv = $employeeSalary->conv_allowance ?? 0;
+                        $trans = $employeeSalary->trans_allowance ?? 0;
+                        $medical = $employeeSalary->medical_allowance ?? 0;
+                        $pf = $employeeSalary->pf_employer ?? 0;
+                        $esi = $employeeSalary->esi_employer ?? 0;
+                        $other = $employeeSalary->other_benefits ?? 0;
+
+                        $monthlyTotal = $basic + $hra + $conv + $trans + $medical + $pf + $esi + $other;
+                        $annualTotal = $monthlyTotal * 12;
+                    @endphp
+
                     <table class="table table-bordered text-center align-middle">
                         <thead>
                             <tr>
@@ -52,53 +74,53 @@
                         <tbody>
                             <tr>
                                 <td>Basic Salary</td>
-                                <td>11,000.00</td>
-                                <td>132,000.00</td>
+                                <td>{{ $basic }}</td>
+                                <td>{{ number_format($basic * 12, 2) }}</td>
                             </tr>
                             <tr>
                                 <td>HRA</td>
-                                <td>5,500.00</td>
-                                <td>66,000.00</td>
+                                <td>{{ $hra }}</td>
+                                <td>{{ number_format($hra * 12, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Conveyance Allowance</td>
+                                <td>{{ $conv }}</td>
+                                <td>{{ number_format($conv * 12, 2) }}</td>
                             </tr>
                             <tr>
                                 <td>Transport Allowance</td>
-                                <td>800.00</td>
-                                <td>9,600.00</td>
+                                <td>{{ $trans }}</td>
+                                <td>{{ number_format($trans * 12, 2) }}</td>
                             </tr>
                             <tr>
                                 <td>Medical Allowance</td>
-                                <td>1,250.00</td>
-                                <td>15,000.00</td>
+                                <td>{{ $medical }}</td>
+                                <td>{{ number_format($medical * 12, 2) }}</td>
                             </tr>
                             <tr>
-                                <td>Monthly Performance Pay</td>
-                                <td>3,450.00</td>
-                                <td>41,400.00</td>
+                                <td>Provident Fund</td>
+                                <td>{{ $pf }}</td>
+                                <td>{{ number_format($pf * 12, 2) }}</td>
                             </tr>
-                            <tr class="highlight-row">
-                                <td>Gross Salary</td>
-                                <td>22,000.00</td>
-                                <td>264,000.00</td>
+                            <tr>
+                                <td>ESI</td>
+                                <td>{{ $esi }}</td>
+                                <td>{{ number_format($esi * 12, 2) }}</td>
                             </tr>
                             <tr>
                                 <td>Other Benefits</td>
-                                <td>-</td>
-                                <td>-</td>
+                                <td>{{ $other }}</td>
+                                <td>{{ number_format($other * 12, 2) }}</td>
                             </tr>
-                            <tr>
-                                <td>Health Insurance</td>
-                                <td>-</td>
-                                <td>-</td>
-                            </tr>
-                            <tr class="total-row">
-                                <td>Total Gross</td>
-                                <td>22,000.00</td>
-                                <td>264,000.00</td>
+                            <tr class="highlight-row">
+                                <td><strong>Gross Salary</strong></td>
+                                <td><strong>{{ number_format($monthlyTotal, 2) }}</strong></td>
+                                <td><strong>{{ number_format($annualTotal, 2) }}</strong></td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
 
+                </div>
                 <div class="mt-4 border p-3 bg-light">
                     <strong>Performance Periods</strong>
                     <ol class="mt-2 mb-0">
@@ -106,7 +128,15 @@
                         <li>July - December</li>
                     </ol>
                 </div>
+
             </div>
+            <div class="row">
+                <div class="col-md-6 offset-md-6 text-end my-2">
+                    <a href="{{ url('employee-salary-stracture/pdf/' . $employeeData->id) }}"><button
+                            class="btn btn-primary">Download</button></a>
+                </div>
+            </div>
+
         </section>
     </div>
 </div>

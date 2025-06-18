@@ -24,42 +24,50 @@
             </div>
 
             <!-- Stats Cards -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
+            <div class="row g-4 mb-3">
+                <div class="col-md-3">
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">Total Employees</h5>
-                            <h3 class="fw-bold">145</h3>
+                            <h3 class="fw-bold">{{ $totalEmployees ?? '0' }}</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Employees</h5>
+                            <h3 class="fw-bold">{{ $activeEmployees ?? '0' }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">Active Projects</h5>
-                            <h3 class="fw-bold">12</h3>
+                            <h3 class="fw-bold">{{ $activeProject ?? '0'}}</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">Departments</h5>
-                            <h3 class="fw-bold">7</h3>
+                            <h5 class="card-title"> last 2 years Projects</h5>
+                            <h3 class="fw-bold">{{ $twoyearProjectCount ?? '0'}}</h3>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Project Progress Chart -->
-            <div class="card shadow-sm">
+            {{-- <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Project Completion Status</h5>
                     <div class="chart-container">
                         <canvas id="projectChart"></canvas>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         </div>
 
     </div>

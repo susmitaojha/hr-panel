@@ -48,6 +48,8 @@
                                  <table id="employee-datatables" class="display table table-striped table-hover">
                                      <thead>
                                          <tr>
+                                            <th style="display: none;">ID</th>
+                                             <th>Project Code</th>
                                              <th>Project Name</th>
                                              <th>Manager Name</th>
                                              <th>Team Lead Name</th>
@@ -62,11 +64,23 @@
                                          @if ($data->isNotEmpty())
                                          @foreach ($data as $project)
                                          <tr>
+                                            <td style="display: none;">{{ $project->id }}</td>
+                                             <td>{{ $project->p_code }}</td>
                                              <td>{{ $project->pname }}</td>
                                              <td>{{ $project->manager?->full_name ?? 'N/A' }}</td>
                                              <td>{{ $project->teamLead?->full_name ?? 'N/A' }}</td>
                                              <td>{{ $project->priority }}</td>
-                                             <td>{{ $project->status }}</td>
+                                            <td>
+                                                @if(strtolower($project->status) == 'closed')
+                                                    <span class="badge bg-danger">{{ $project->status }}</span>
+                                                @elseif(strtolower($project->status) == 'running')
+                                                    <span class="badge bg-success">{{ $project->status }}</span>
+                                                @elseif(strtolower($project->status) == 'pending')
+                                                    <span class="badge bg-warning text-dark">{{ $project->status }}</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ $project->status }}</span> {{-- default --}}
+                                                @endif
+                                            </td>
                                              <td>{{ $project->start_date }}</td>
                                              <td>{{ $project->end_date }}</td>
                                              <td>
@@ -114,13 +128,14 @@
         $('#employee-datatables').DataTable({
         pageLength: 25, // Show 25 entries by default
         dom: 'lBfrtip',
+        order: ['0', 'desc'],
         buttons: [
             {
             extend: 'excelHtml5',
             text: 'Export to Excel',
             className: 'btn-excel',
             exportOptions: {
-                columns: [0, 1, 2, 3, 4,5,6]
+                columns: [0, 1, 2, 3, 4,5,6.7]
                 }
             },
             {
@@ -128,7 +143,7 @@
             text: 'Export to PDF',
             className: 'btn-pdf',
             exportOptions: {
-                columns: [0, 1, 2, 3, 4,5,6]
+                columns: [0, 1, 2, 3, 4,5,6,7]
                 }
             }
         ]

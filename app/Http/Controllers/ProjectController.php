@@ -25,8 +25,8 @@ class ProjectController extends Controller
     public function appEditProject(Request $request, $id)
     {
         $data['project'] = Project::find($id);
-        $data['mangerdata'] = Employee::where('state', '1')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
-        $data['teamLeaddata'] = Employee::where('state', '2')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
+        $data['mangerdata'] = Employee::where('role', '1')->where('status', '0')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
+        $data['teamleaddata'] = Employee::where('role', '2')->where('status', '0')->where('is_deleted', 0)->orderBy('id', 'desc')->get();
         return view('frontend.addProject', $data);
     }
     public function addProject(Request $request)
@@ -37,14 +37,14 @@ class ProjectController extends Controller
             if ($request->project_id == 0) {
                 $validated = $request->validate([
                     'pname' => 'required|string|max:255',
-                    'hours' => 'nullable|numeric',
                     'note' => 'nullable|string',
                     'priority' => 'required|in:Low,Medium,High',
                     'managerid' => 'required|numeric',
                     'team_lead_id' => 'required|numeric',
                     'start_date' => 'nullable|date',
-                    'end_date' => 'nullable|date|after_or_equal:start_date',
-                    'status' => 'required|in:Planned,Ongoing,Completed',
+                    'end_date' => 'nullable|date',
+                    'hours' => 'nullable|numeric',
+                    'status' => 'nullable|string',
                 ]);
 
                 $projectName = $request->pname;
